@@ -14,6 +14,7 @@ from dagster._core.definitions.selector import (
     SensorSelector,
 )
 from dagster._core.errors import DagsterInvariantViolationError
+from dagster._core.event_api import PartitionKeyFilter
 from dagster._core.execution.backfill import BulkActionStatus
 from dagster._core.nux import get_has_seen_nux
 from dagster._core.remote_representation.external import CompoundID
@@ -645,6 +646,7 @@ class GrapheneQuery(graphene.ObjectType):
         non_null_list(GrapheneAssetCheckExecution),
         assetKey=graphene.Argument(graphene.NonNull(GrapheneAssetKeyInput)),
         checkName=graphene.Argument(graphene.NonNull(graphene.String)),
+        partition=graphene.Argument(graphene.String),
         limit=graphene.NonNull(graphene.Int),
         cursor=graphene.String(),
         description="Retrieve the executions for a given asset check.",
@@ -1366,6 +1368,7 @@ class GrapheneQuery(graphene.ObjectType):
         checkName: str,
         limit: int,
         cursor: Optional[str] = None,
+        partition: Optional[str] = None,
     ):
         return fetch_asset_check_executions(
             graphene_info.context,
@@ -1374,6 +1377,7 @@ class GrapheneQuery(graphene.ObjectType):
             ),
             limit=limit,
             cursor=cursor,
+            partition_filter=PartitionKeyFilter(key=partition),
         )
 
     def resolve_latestDefsStateInfo(self, graphene_info: ResolveInfo):
